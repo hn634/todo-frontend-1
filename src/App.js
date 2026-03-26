@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from "react";
+import Header from "./components/Header";
+import ToDoForm from "./components/ToDoForm";
+import ToDoList from "./components/ToDoList";
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -11,15 +14,16 @@ function App() {
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
 
+  const addTodo = (text) => {
+    if (!text.trim()) return;
+    setTodos([...todos, { id: Date.now(), title: text }]);
+  };
+
   return (
     <div>
-      <h1>Todo List</h1>
-      {/* todosの内容をリスト(<ul><li>)を使用して一覧表示 */}
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>{todo.title}</li>
-        ))}
-      </ul>
+      <Header />
+      <ToDoForm addTodo={addTodo} />
+      <ToDoList todos={todos} />
     </div>
   );
 }

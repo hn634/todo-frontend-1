@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Header from "./components/Header";
+import LoginForm from "./components/LoginForm";
 import SignUpForm from "./components/SignUpForm";
 import ToDoForm from "./components/ToDoForm";
 import ToDoList from "./components/ToDoList";
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
   const [todos, setTodos] = useState([]);
 
-  // 🔥 スタイル（そのまま使う）
   const appStyle = {
     maxWidth: "600px",
     margin: "0 auto",
@@ -15,31 +23,70 @@ function App() {
     boxSizing: "border-box",
   };
 
-  // 🔥 API取得
+  // 🔥 API取得（ログイン後だけでもOK）
   useEffect(() => {
-    fetch("http://localhost:8000/api/todo")
-      .then((response) => response.json())
-      .then((data) => setTodos(data))
-      .catch((error) => console.error("Error fetching data:", error));
-  }, []);
+    if (isLoggedIn) {
+      fetch("http://localhost:8000/api/todo")
+        .then((res) => res.json())
+        .then((data) => setTodos(data))
+        .catch((err) => console.error(err));
+    }
+  }, [isLoggedIn]);
 
-  // 🔥 追加処理
+  // 🔥 ログイン
+  const handleLogin = (username) => {
+    setIsLoggedIn(true);
+    setUsername(username);
+  };
+
+  // 🔥 ログアウト
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUsername("");
+    setTodos([]);
+  };
+
+  // 🔥 Todo追加
   const addTodo = (text) => {
     if (!text.trim()) return;
     setTodos([...todos, { id: Date.now(), title: text }]);
   };
 
   return (
-    <div style={appStyle}>
-      <Header />
+    <Router>
+      <div style={appStyle}>
+        <Header />
 
-      {/* 👇 サインアップ */}
-      <SignUpForm />
+        <Routes>
+          {/* ログイン */}
+          <Route path="/login" element={<LoginForm onLogin={handleLogin} />} />
 
-      {/* 👇 Todo機能 */}
-      <ToDoForm addTodo={addTodo} />
-      <ToDoList todos={todos} />
-    </div>
+          {/* サインアップ */}
+          <Route path="/signup" element={<SignUpForm />} />
+
+          {/* 🔥 Todo画面 */}
+          <Route
+            path="/home"
+            element={
+              isLoggedIn ? (
+                <div>
+                  <p>ようこそ {username} 👋</p>
+                  <button onClick={handleLogout}>ログアウト</button>
+
+                  <ToDoForm addTodo={addTodo} />
+                  <ToDoList todos={todos} />
+                </div>
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+
+          {/* デフォルト */}
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

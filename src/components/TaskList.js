@@ -1,15 +1,23 @@
 import React from "react";
 import TaskItem from "./TaskItem";
 
-// タスクリストの表示コンポーネント
-function TaskList({ tasks, onToggleComplete }) {
+function TaskList({ tasks, onDelete, onUpdate, onToggleComplete }) {
+  if (!tasks || tasks.length === 0) return <p>タスクがありません。</p>;
+
+  const listStyle = {
+    marginTop: "20px",
+    listStyle: "none",
+    padding: 0,
+  };
+
   return (
-    <ul style={{ marginTop: "20px", listStyle: "none", padding: 0 }}>
-      {/* 各タスクアイテムを表示 */}
+    <ul style={listStyle}>
       {tasks.map((task) => (
         <TaskItem
           key={task.id}
           task={task}
+          onDelete={onDelete}
+          onUpdate={onUpdate}
           onToggleComplete={onToggleComplete}
         />
       ))}

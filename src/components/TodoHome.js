@@ -1,156 +1,153 @@
 import React, { useState } from "react";
+import TaskFilter from "./TaskFilter";
+import TaskList from "./TaskList";
 
-function ToDoHome({ onLogout, username }) {
+function TodoHome({ onLogout, username }) {
+  // タスクリストの状態
   const [tasks, setTasks] = useState([]);
+  // 入力されたタスクタイトル
   const [title, setTitle] = useState("");
+  // 入力されたタスク詳細
   const [details, setDetails] = useState("");
+  // フィルタリングの状態 ('all', 'completed', 'incomplete')
+  const [filter, setFilter] = useState("all");
+  // エラーメッセージ
   const [error, setError] = useState("");
-  const [notification, setNotification] = useState("");
 
+  // タスクを追加する関数
   const handleAddTask = (e) => {
     e.preventDefault();
 
-    if (title.trim().length === 0 || title.trim().length > 25) {
-      setError("タイトルは1文字以上、25文字以内で入力してください。");
+    // タイトルの文字数制限チェック
+    if (title.length > 25) {
+      setError("タイトルは25文字以内で入力してください");
       return;
     }
 
-    if (details.trim().length === 0) {
-      setError("詳細を入力してください。");
+    // 必須項目チェック
+    if (!title || !details) {
+      setError("タイトルと詳細を入力してください");
       return;
     }
 
-    setError("");
+    setError(""); // エラーをクリア
 
+    // 新しいタスクの作成
     const currentDateTime = new Date().toLocaleString();
-
     const newTask = {
-      id: Date.now(),
-      title: title.trim(),
-      details: details.trim(),
-      createdAt: currentDateTime,
-      updatedAt: currentDateTime,
+      id: Date.now(), // 一意のIDを生成
+      title,
+      details,
+      createdAt: currentDateTime, // 作成日時
+      updatedAt: currentDateTime, // 更新日時
+      completed: false, // 初期状態は未完了
     };
 
+    // タスクリストに追加
     setTasks([...tasks, newTask]);
-    setTitle("");
+    setTitle(""); // 入力フィールドをリセット
     setDetails("");
-
-    setNotification("タスクが追加されました！");
-    setTimeout(() => setNotification(""), 3000);
   };
 
-  const handleLogout = () => {
-    setTasks([]);
-    onLogout();
+  // タスクの完了/未完了を切り替える関数
+  const handleToggleComplete = (taskId) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              completed: !task.completed,
+              updatedAt: new Date().toLocaleString(),
+            } // 状態を反転
+          : task,
+      ),
+    );
   };
 
-  const containerStyle = {
-    maxWidth: "600px",
-    margin: "0 auto",
-    padding: "20px",
-    boxSizing: "border-box",
-  };
+  // フィルタリングされたタスクリストを取得
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === "completed") return task.completed; // 完了タスクのみ
+    if (filter === "incomplete") return !task.completed; // 未完了タスクのみ
+    return true; // 全タスク
+  });
 
+  // コンポーネントのスタイル設定
+  const containerStyle = { width: "600px", margin: "0 auto", padding: "20px" };
   const headerStyle = {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
     marginBottom: "20px",
   };
-
+  const formStyle = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "15px",
+    marginTop: "20px",
+  };
+  const inputStyle = {
+    padding: "10px",
+    fontSize: "16px",
+    width: "100%",
+    boxSizing: "border-box",
+  };
+  const errorStyle = { color: "red", fontSize: "14px" };
   const logoutButtonStyle = {
     padding: "10px",
-    fontSize: "14px",
+    fontSize: "16px",
     backgroundColor: "#dc3545",
     color: "#fff",
     border: "none",
-    borderRadius: "5px",
     cursor: "pointer",
-  };
-
-  const inputStyle = {
-    width: "100%",
-    padding: "10px",
-    marginBottom: "10px",
-    border: "1px solid #ccc",
-    borderRadius: "5px",
-    boxSizing: "border-box",
-  };
-
-  const submitButtonStyle = {
-    padding: "10px 20px",
-    backgroundColor: "#007bff",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-    marginTop: "10px",
-  };
-
-  const taskItemStyle = {
-    borderBottom: "1px solid #ddd",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "5px",
-    backgroundColor: "#f8f9fa",
   };
 
   return (
     <div style={containerStyle}>
+      {/* ヘッダー: ユーザー情報とログアウトボタン */}
       <header style={headerStyle}>
         <div>{username}でログイン中</div>
-        <button style={logoutButtonStyle} onClick={handleLogout}>
+        <button style={logoutButtonStyle} onClick={onLogout}>
           ログアウト
         </button>
       </header>
 
-      <h2>ようこそ！ToDoアプリへ</h2>
-
-      <form onSubmit={handleAddTask} style={{ marginBottom: "20px" }}>
+      {/* タスク追加フォーム */}
+      <form style={formStyle} onSubmit={handleAddTask}>
         <input
           type="text"
-          placeholder="タスクタイトル（25文字以内）"
+          placeholder="タスクタイトル (25文字以内)"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           style={inputStyle}
         />
-
         <textarea
           placeholder="タスク詳細"
           value={details}
           onChange={(e) => setDetails(e.target.value)}
-          rows="4"
-          style={inputStyle}
+          style={{ ...inputStyle, height: "120px" }}
         />
-
-        {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
-
-        <button type="submit" style={submitButtonStyle}>
+        {error && <p style={errorStyle}>{error}</p>}
+        <button
+          type="submit"
+          style={{
+            padding: "10px",
+            fontSize: "16px",
+            backgroundColor: "#28a745",
+            color: "#fff",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
           追加
         </button>
       </form>
 
-      {notification && (
-        <p style={{ color: "green", marginBottom: "20px" }}>{notification}</p>
-      )}
+      {/* フィルタリングボタン */}
+      <TaskFilter filter={filter} setFilter={setFilter} />
 
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {tasks.map((task) => (
-          <li key={task.id} style={taskItemStyle}>
-            <h3 style={{ margin: "0 0 5px 0" }}>{task.title}</h3>
-            <p style={{ margin: "0 0 5px 0" }}>{task.details}</p>
-            <small style={{ display: "block", color: "#888" }}>
-              作成日時: {task.createdAt}
-            </small>
-            <small style={{ display: "block", color: "#888" }}>
-              更新日時: {task.updatedAt}
-            </small>
-          </li>
-        ))}
-      </ul>
+      {/* タスクリスト */}
+      <TaskList tasks={filteredTasks} onToggleComplete={handleToggleComplete} />
     </div>
   );
 }
 
-export default ToDoHome;
+export default TodoHome;

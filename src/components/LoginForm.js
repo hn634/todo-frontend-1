@@ -1,98 +1,89 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import apiClient from "../api/client";
 
-function LoginForm({ onLogin }) {
-  const [username, setUsername] = useState(""); // ユーザー名入力
-  const [password, setPassword] = useState(""); // パスワード入力
+function LoginForms({ onLogin }) {
+  const [username, setUsername] = useState(""); // ユーザー名
+  const [password, setPassword] = useState(""); // パスワード
   const [error, setError] = useState(""); // エラーメッセージ
-  const navigate = useNavigate(); // ページ遷移用
+  const navigate = useNavigate(); // ページ遷移用のフック
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // 仮の認証データ
-    const mockUser = {
-      username: "testuser",
-      password: "password123",
-    };
-
-    // 入力値が正しい場合
-    if (username === mockUser.username && password === mockUser.password) {
-      onLogin(username); // ログイン処理を実行
-      navigate("/home"); // ホーム画面へ遷移
-    } else {
-      setError("ユーザー名またはパスワードが正しくありません。");
+  // ログインフォームの送信処理
+  const handleLogin = async (e) => {
+    e.preventDefault(); // デフォルトの送信動作を防止
+    try {
+      const response = await apiClient.post("/auth/login", {
+        username,
+        password,
+      }); // ログインリクエスト
+      const { token } = response.data; // トークンを取得
+      localStorage.setItem("token", token); // トークンをローカルストレージに保存
+      onLogin(username); // 親コンポーネントにログインイベントを伝達
+      navigate("/home"); // ホーム画面に遷移
+    } catch {
+      setError(
+        "ログインに失敗しました。ユーザー名またはパスワードを確認してください。",
+      );
     }
   };
 
-  const handleNavigateToSignUp = () => {
-    navigate("/signup"); // アカウント作成画面に遷移
-  };
-
-  const formStyle = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-    maxWidth: "400px",
-    margin: "20px auto",
-  };
-
-  const inputStyle = {
-    padding: "10px",
-    fontSize: "16px",
-    width: "100%",
-    boxSizing: "border-box",
-  };
-
-  const buttonStyle = {
-    padding: "10px",
-    fontSize: "16px",
-    backgroundColor: "#007bff",
-    color: "#fff",
-    border: "none",
-    cursor: "pointer",
-  };
-
-  const linkButtonStyle = {
-    padding: "10px",
-    fontSize: "16px",
-    backgroundColor: "transparent",
-    color: "#007bff",
-    border: "none",
-    textDecoration: "underline",
-    cursor: "pointer",
-    textAlign: "center",
-  };
-
-  const errorStyle = {
-    color: "red",
-    fontSize: "12px",
-  };
-
   return (
-    <form style={formStyle} onSubmit={handleSubmit}>
+    <form
+      onSubmit={handleLogin}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "15px",
+        maxWidth: "400px",
+        margin: "20px auto",
+      }}
+    >
+      {/* ユーザー名入力 */}
       <input
         type="text"
         placeholder="ユーザー名"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
-        style={inputStyle}
+        required
+        style={{ padding: "10px", fontSize: "16px" }}
       />
+      {/* パスワード入力 */}
       <input
         type="password"
         placeholder="パスワード"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        style={inputStyle}
+        required
+        style={{ padding: "10px", fontSize: "16px" }}
       />
-      {error && <p style={errorStyle}>{error}</p>}
-      <button type="submit" style={buttonStyle}>
+      {/* エラーメッセージ */}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      {/* ログインボタン */}
+      <button
+        type="submit"
+        style={{
+          padding: "10px",
+          fontSize: "16px",
+          backgroundColor: "#007bff",
+          color: "#fff",
+          border: "none",
+        }}
+      >
         ログイン
       </button>
+      {/* アカウント作成画面への遷移ボタン */}
       <button
         type="button"
-        style={linkButtonStyle}
-        onClick={handleNavigateToSignUp}
+        onClick={() => navigate("/signup")}
+        style={{
+          padding: "10px",
+          fontSize: "16px",
+          backgroundColor: "transparent",
+          color: "#007bff",
+          border: "none",
+          textDecoration: "underline",
+          cursor: "pointer",
+        }}
       >
         アカウント作成はこちら
       </button>
@@ -100,4 +91,4 @@ function LoginForm({ onLogin }) {
   );
 }
 
-export default LoginForm;
+export default LoginForms;

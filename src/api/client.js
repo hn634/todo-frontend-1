@@ -6,7 +6,7 @@ const API_BASE_URL =
 
 // Axiosインスタンスを作成
 const apiClient = axios.create({
-  baseURL: "http://127.0.0.1:8000", // ベースURLの設定
+  baseURL: API_BASE_URL, // ベースURLの設定
   headers: {
     "Content-Type": "application/json", // リクエストをJSON形式に設定
   },

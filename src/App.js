@@ -8,7 +8,7 @@ import {
 import Header from "./components/Header";
 import LoginForm from "./components/LoginForm";
 import SignUpForm from "./components/SignUpForm";
-import ToDoHome from "./components/ToDoHome";
+import TodoHome from "./components/TodoHome";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -44,7 +44,7 @@ function App() {
             path="/home"
             element={
               isLoggedIn ? (
-                <ToDoHome onLogout={handleLogout} username={username} />
+                <TodoHome onLogout={handleLogout} username={username} />
               ) : (
                 <Navigate to="/login" />
               )
